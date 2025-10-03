@@ -86,15 +86,20 @@ def scan_page_for_xss(session, url):
         return []
 
 if __name__ == "__main__":
-    print("--- Starting Gemini Web Scanner ---")
+    import argparse
+    parser = argparse.ArgumentParser(description="A simple XSS scanner for bWAPP.")
+    parser.add_argument("--level", help="Set the bWAPP security level (0, 1, or 2)", default="0")
+    args = parser.parse_args()
+
+    print(f"--- Starting Gemini Web Scanner (Security Level: {args.level}) ---")
     
     # 1. Create a session and log in
     session = requests.Session()
     login_url = "http://127.0.0.1:8888/login.php"
-    login_payload = {"login": "bee", "password": "bug", "security_level": "0", "form": "submit"}
+    login_payload = {"login": "bee", "password": "bug", "security_level": args.level, "form": "submit"}
     
     try:
-        print("[*] Logging in to bWAPP...")
+        print(f"[*] Logging in to bWAPP with security level '{args.level}'...")
         login_response = session.post(login_url, data=login_payload)
         login_response.raise_for_status()
         if "welcome bee" not in login_response.text.lower():

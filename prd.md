@@ -332,35 +332,22 @@ if __name__ == "__main__":
 - 스캐너의 설정을 변경하여 다양한 시나리오를 테스트하는 방법을 학습합니다.
 - 높은 보안 레벨에서는 이전에 발견된 XSS 취약점이 방어됨을 직접 확인합니다.
 
-### (2) 전체 파이썬 코드
-4단계에서 작성한 `scanner.py` 코드를 거의 그대로 사용합니다. 단 한 부분, 로그인할 때 전송하는 `login_payload`만 수정하면 됩니다.
+### (2) 실행 방법
+4단계에서 완성한 `scanner.py`를 그대로 사용하되, 커맨드 라인에서 `--level` 옵션을 추가하여 실행합니다.
 
-```python
-# step4_final_scanner/scanner.py의 메인 실행 로직에서 이 부분만 수정합니다.
+**낮은 보안 레벨(취약점 발견)로 스캔 실행:**
+```bash
+python step4_final_scanner/scanner.py --level 0
+```
 
-# ... (생략) ...
-
-if __name__ == "__main__":
-    # ... (생략) ...
-    
-    # security_level을 '0'(low)에서 '2'(high)로 변경
-    login_payload = {
-        "login": "bee", 
-        "password": "bug",
-        "security_level": "2", # <- 이 부분을 수정!
-        "form": "submit"
-    }
-
-    try:
-        print("[*] Logging in to bWAPP with HIGH security level...")
-        login_response = session.post(login_url, data=login_payload)
-        # ... (이하 동일) ...
+**높은 보안 레벨(방어 확인)로 스캔 실행:**
+```bash
+python step4_final_scanner/scanner.py --level 2
 ```
 
 ### (3) 상세한 코드 설명
-1.  **`"security_level": "2"`**: bWAPP에 로그인할 때 `security_level` 값을 `2`로 설정합니다. 이는 bWAPP의 보안 설정을 "high"로 맞추는 것과 동일한 효과를 가집니다. `requests.Session()` 객체가 쿠키를 관리해주므로, 이 로그인 이후의 모든 요청은 "high" 보안 레벨에서 처리됩니다.
-2.  **스캔 실행**: 동일한 `scan_page_for_xss` 함수를 호출하여 `htmli_get.php` 페이지를 다시 스캔합니다.
-3.  **예상 결과**: 4단계와는 달리, 스캐너는 더 이상 "XSS VULNERABILITY FOUND" 메시지를 출력하지 않고, "No XSS vulnerabilities found on this page." 라는 결과를 보여줄 것입니다.
+1.  **`python step4_final_scanner/scanner.py --level 2`**: 4단계의 스캐너를 실행하면서, `--level` 인자를 `2`로 설정합니다. 스크립트 내부의 `argparse` 로직이 이 값을 받아 로그인 시 `security_level`에 반영합니다.
+2.  **스캔 실행 및 결과**: 스크립트는 높은 보안 레벨로 로그인한 후 스캔을 수행합니다. 4단계와는 달리, 스캐너는 더 이상 "XSS VULNERABILITY FOUND" 메시지를 출력하지 않고, "No XSS vulnerabilities found on this page." 라는 결과를 보여줄 것입니다.
 
 ### (4) 왜 취약점이 사라졌을까? (서버 측 방어)
 높은 보안 레벨에서 bWAPP 서버는 사용자로부터 입력받은 값에 포함된 특수문자들을 HTML 엔티티(HTML Entities)로 **이스케이핑(Escaping)**합니다. 예를 들어, 우리가 전송한 XSS 페이로드는 서버 응답에 다음과 같이 변형되어 포함됩니다.
